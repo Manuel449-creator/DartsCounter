@@ -1,6 +1,11 @@
 import SwiftUI
 import Foundation
 
+enum TournamentMode: String, Codable, CaseIterable {
+    case sets = "Sets"
+    case legs = "Legs"
+}
+
 struct Tournament: Codable, Identifiable {
     let id: UUID
     var name: String
@@ -88,9 +93,11 @@ extension Tournament {
         // Berechne die Startposition für jede Runde
         var roundStartNumbers: [TournamentPhase: Int] = [:]
         var currentStartNumber = 1
+        
         for phase in size.rounds {
             roundStartNumbers[phase] = currentStartNumber
-            currentStartNumber += size.requiredMatches / Int(pow(2.0, Double(roundStartNumbers.count)))
+            let matchesInPhase = size.requiredMatches / Int(pow(2.0, Double(size.rounds.firstIndex(of: phase) ?? 0)))
+            currentStartNumber += matchesInPhase
         }
         
         print("Debug - Round start numbers: \(roundStartNumbers)")
@@ -101,62 +108,54 @@ extension Tournament {
         }
         
         // Erstelle erste Runde
-        let firstPhase = size.rounds.first!
-        while playerQueue.count >= 2 {
-            let player1 = playerQueue.removeFirst()
-            let player2 = playerQueue.removeFirst()
-            
-            let nextRoundStart = roundStartNumbers[size.rounds[1]] ?? 0
-            let nextMatchNumber = nextRoundStart + (matchNumber - 1) / 2
-            
-            print("Debug - Creating first round match: \(matchNumber) -> \(nextMatchNumber)")
-            
-            let isByeMatch = player2 == "BYE"
-            let winner = isByeMatch ? player1 : nil
-            
-            let match = TournamentMatch(
-                id: UUID(),
-                player1: player1,
-                player2: player2,
-                winner: winner,  // Wenn BYE, dann ist player1 automatisch der Gewinner
-                phase: firstPhase,
-                matchNumber: matchNumber,
-                nextMatchNumber: nextMatchNumber,
-                isCompleted: isByeMatch,  // Match ist bereits abgeschlossen, wenn ein Freilos besteht
-                isBye: isByeMatch,
-                tournamentId: tournamentId
-            )
-            matches.append(match)
-            matchNumber += 1
-            
-            // WICHTIG: Wenn ein BYE Match erstellt wurde, direkt den Gewinner in das nächste Match eintragen
-            if isByeMatch {
-                // Finde die nächste Phase
+        if let firstPhase = size.rounds.first {
+            while playerQueue.count >= 2 {
+                let player1 = playerQueue.removeFirst()
+                let player2 = playerQueue.removeFirst()
+                
+                // Sicherheitscheck für den Index
                 let nextPhaseIndex = size.rounds.firstIndex(of: firstPhase).map { $0 + 1 }
-                let nextPhase = nextPhaseIndex.flatMap { index -> TournamentPhase? in
-                    return index < size.rounds.count ? size.rounds[index] : nil
+                
+                let nextMatchNumber: Int?
+                if let nextIndex = nextPhaseIndex, nextIndex < size.rounds.count {
+                    let nextPhase = size.rounds[nextIndex]
+                    let nextStart = roundStartNumbers[nextPhase] ?? 0
+                    nextMatchNumber = nextStart + (matchNumber - 1) / 2
+                } else {
+                    nextMatchNumber = nil
                 }
                 
-                // Finde/erstelle das nächste Match
-                if let nextPhase = nextPhase {
-                    let isFirstPositionFiller = match.matchNumber % 2 == 1
-                    
-                    // Dieses Match wird später erstellt, wir merken uns die Informationen
-                    if isFirstPositionFiller {
-                        // Wir müssen später player1 setzen
-                        print("Debug - BYE: Need to set player1 of match \(nextMatchNumber) to \(player1)")
-                    } else {
-                        // Wir müssen später player2 setzen
-                        print("Debug - BYE: Need to set player2 of match \(nextMatchNumber) to \(player1)")
-                    }
-                }
+                print("Debug - Creating first round match: \(matchNumber) -> \(String(describing: nextMatchNumber))")
+                
+                let match = TournamentMatch(
+                    id: UUID(),
+                    player1: player1,
+                    player2: player2,
+                    phase: firstPhase,
+                    matchNumber: matchNumber,
+                    nextMatchNumber: nextMatchNumber,
+                    isCompleted: player2 == "BYE",
+                    isBye: player2 == "BYE",
+                    tournamentId: tournamentId
+                )
+                matches.append(match)
+                matchNumber += 1
             }
         }
         
         // Erstelle restliche Runden
         for (index, phase) in size.rounds.dropFirst().enumerated() {
             let currentRoundStart = roundStartNumbers[phase] ?? 0
-            let nextRoundStart = index + 1 < size.rounds.count - 1 ? roundStartNumbers[size.rounds[index + 2]] ?? 0 : 0
+            
+            // Sichere Berechnung des nächsten RoundStart
+            let nextRoundStart: Int
+            if index + 1 < size.rounds.count - 1 {
+                let nextPhase = size.rounds[index + 2]
+                nextRoundStart = roundStartNumbers[nextPhase] ?? 0
+            } else {
+                nextRoundStart = 0
+            }
+            
             let matchesInRound = size.requiredMatches / Int(pow(2.0, Double(index + 1)))
             
             print("Debug - Creating \(phase) round: start=\(currentRoundStart), next=\(nextRoundStart), count=\(matchesInRound)")
@@ -165,30 +164,10 @@ extension Tournament {
                 let currentMatchNumber = currentRoundStart + i
                 let nextMatchNumber = phase == .final ? nil : nextRoundStart + i / 2
                 
-                // Suche nach BYE-Matches, die zu diesem Match führen können
-                let prevPhase = size.rounds[index]
-                let prevMatches = matches.filter {
-                    $0.phase == prevPhase &&
-                    $0.nextMatchNumber == currentMatchNumber &&
-                    $0.isBye
-                }
-                
-                // Bestimme anfängliche Spieler basierend auf BYE-Matches
-                var player1 = ""
-                var player2 = ""
-                
-                for prevMatch in prevMatches {
-                    if prevMatch.matchNumber % 2 == 1 {
-                        player1 = prevMatch.player1
-                    } else {
-                        player2 = prevMatch.player1
-                    }
-                }
-                
                 let match = TournamentMatch(
                     id: UUID(),
-                    player1: player1,
-                    player2: player2,
+                    player1: "",
+                    player2: "",
                     phase: phase,
                     matchNumber: currentMatchNumber,
                     nextMatchNumber: nextMatchNumber,
