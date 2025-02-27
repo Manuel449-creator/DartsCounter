@@ -1,3 +1,5 @@
+import SwiftUI
+
 struct MatchResultView: View {
     let match: TournamentMatch
     

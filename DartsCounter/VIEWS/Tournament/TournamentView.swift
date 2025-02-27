@@ -2,8 +2,17 @@ import SwiftUI
 
 struct TournamentView: View {
     @Environment(\.dismiss) var dismiss
-    @StateObject private var tournamentManager = TournamentManager()
+    @StateObject private var tournamentManager: TournamentManager
+    @ObservedObject var playerManager: PlayerManager
     @State private var showingNewTournamentSheet = false
+    
+    init(playerManager: PlayerManager) {
+        self.playerManager = playerManager
+        self._tournamentManager = StateObject(wrappedValue: TournamentManager(
+            historyManager: MatchHistoryManager(),
+            playerManager: playerManager
+        ))
+    }
     
     var body: some View {
         NavigationView {
@@ -11,7 +20,6 @@ struct TournamentView: View {
                 Color.black.edgesIgnoringSafeArea(.all)
                 
                 VStack(spacing: 20) {
-                    // Neues Turnier Button
                     Button(action: {
                         showingNewTournamentSheet = true
                     }) {
@@ -27,7 +35,6 @@ struct TournamentView: View {
                     }
                     .padding(.horizontal)
                     
-                    // Liste der Turniere
                     if tournamentManager.tournaments.isEmpty {
                         VStack {
                             Image(systemName: "trophy")
@@ -41,7 +48,10 @@ struct TournamentView: View {
                         ScrollView {
                             LazyVStack(spacing: 12) {
                                 ForEach(tournamentManager.tournaments) { tournament in
-                                    TournamentCard(tournament: tournament)
+                                    TournamentCard(
+                                        tournamentManager: tournamentManager,
+                                        tournament: tournament
+                                    )
                                 }
                             }
                             .padding()
@@ -51,49 +61,13 @@ struct TournamentView: View {
             }
             .navigationTitle("Turniere")
             .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(leading: Button("Zurück") {
-                dismiss()
-            })
+            .navigationViewStyle(StackNavigationViewStyle())
         }
         .sheet(isPresented: $showingNewTournamentSheet) {
-            CreateTournamentView(tournamentManager: tournamentManager)
+            CreateTournamentView(
+                tournamentManager: tournamentManager,
+                playerManager: playerManager
+            )
         }
-    }
-}
-
-struct TournamentCard: View {
-    let tournament: Tournament
-    
-    var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter.string(from: tournament.date)
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(tournament.name)
-                .font(.headline)
-                .foregroundColor(.white)
-            
-            Text(formattedDate)
-                .font(.subheadline)
-                .foregroundColor(.gray)
-            
-            Text("\(tournament.players.count) Spieler")
-                .font(.caption)
-                .foregroundColor(.gray)
-            
-            if let winner = tournament.winner {
-                Text("Gewinner: \(winner)")
-                    .font(.caption)
-                    .foregroundColor(.green)
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(white: 0.15))
-        .cornerRadius(10)
     }
 }

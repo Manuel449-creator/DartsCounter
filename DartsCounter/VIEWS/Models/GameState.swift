@@ -1,6 +1,5 @@
 import Foundation
 
-// Game State
 struct GameState {
     var currentSet: Int = 1
     var player1Sets: Int = 0
@@ -10,9 +9,25 @@ struct GameState {
     var player2Legs: Int = 0
     var isPlayer1Starting: Bool = true
     
-    mutating func determineNextLegStarter() {
-        isPlayer1Starting.toggle()
+    var winner: String? {
+        if player1Sets > player2Sets {
+            return player1Name
+        } else if player2Sets > player1Sets {
+            return player2Name
+        }
+        return nil
     }
+    
+    var player1Name: String
+    var player2Name: String
+    
+    init(player1Name: String, player2Name: String) {
+        self.player1Name = player1Name
+        self.player2Name = player2Name
+        // Bei einem neuen Spiel beginnt Spieler 1 (Heimspieler) das erste Leg
+        self.isPlayer1Starting = true
+    }
+    
     
     mutating func handleLegWin(wonByPlayer1: Bool) {
         if wonByPlayer1 {
@@ -22,6 +37,7 @@ struct GameState {
         }
         
         if player1Legs == 3 || player2Legs == 3 {
+            // Set ist zu Ende
             if player1Legs > player2Legs {
                 player1Sets += 1
             } else {
@@ -30,72 +46,15 @@ struct GameState {
             player1Legs = 0
             player2Legs = 0
             currentSet += 1
-        }
-        
-        currentLeg += 1
-        determineNextLegStarter()
-    }
-}
-
-// Game Modes and Types
-enum GameMode: String, Codable, CaseIterable {
-    case fiveZeroOne = "501"
-    case cricket = "Cricket"
-    case training = "Training"
-}
-
-enum OpponentType: String, Codable, CaseIterable {
-    case human = "Mensch"
-    case bot = "Bot"
-}
-
-enum BotDifficulty: String, Codable, CaseIterable {
-    case easy = "Einfach"
-    case medium = "Mittel"
-    case hard = "Schwer"
-    
-    var average: Double {
-        switch self {
-        case .easy: return 40.0
-        case .medium: return 60.0
-        case .hard: return 80.0
+            currentLeg = 1
+            
+            // Starter für den neuen Set (ungerade Sets -> Spieler 1, gerade Sets -> Spieler 2)
+            isPlayer1Starting = currentSet % 2 == 1
+        } else {
+            // Nächstes Leg innerhalb des Sets
+            currentLeg += 1
+            // Wechsel des Starters für das nächste Leg
+            isPlayer1Starting = !isPlayer1Starting
         }
     }
-}
-
-// Game Data Structures
-struct Turn: Codable, Equatable {
-    let score: Int
-    let dartsThrown: Int
-    let isPlayer1: Bool
-}
-
-struct Leg: Codable, Identifiable {
-    let id: UUID
-    let turns: [Turn]
-    let winner: String
-    let startingPlayer: String
-}
-
-struct SavedGameState: Codable {
-    let currentSet: Int
-    let player1Sets: Int
-    let player2Sets: Int
-    let currentLeg: Int
-    let player1Legs: Int
-    let player2Legs: Int
-    let isPlayer1Starting: Bool
-    let playerScore: Int
-    let opponentScore: Int
-    let playerLastScore: String
-    let opponentLastScore: String
-    let playerDartsThrown: Int
-    let opponentDartsThrown: Int
-    let isPlayerTurn: Bool
-    let turnHistory: [Turn]
-    let numberOfSets: Int
-}
-
-struct SetConfiguration {
-    static let options = ["Best of 3", "Best of 5", "Best of 7"]
 }

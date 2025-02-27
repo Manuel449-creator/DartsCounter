@@ -1,3 +1,11 @@
+//
+//  EditMatchPlayersView.swift
+//  DartsCounter
+//
+//  Created by Manuel Wagner on 19.02.25.
+//
+import SwiftUI
+
 struct EditMatchPlayersView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var tournamentManager: TournamentManager

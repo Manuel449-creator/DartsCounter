@@ -1,3 +1,11 @@
+//
+//  TournamentPlayerRow.swift
+//  DartsCounter
+//
+//  Created by Manuel Wagner on 13.02.25.
+//
+
+
 import SwiftUI
 
 struct TournamentPlayerRow: View {

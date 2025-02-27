@@ -20,7 +20,7 @@ struct ActiveTournamentHeader: View {
     }
     
     var progress: Double {
-        Double(completedMatches) / Double(totalMatches)
+        totalMatches > 0 ? Double(completedMatches) / Double(totalMatches) : 0
     }
     
     var body: some View {

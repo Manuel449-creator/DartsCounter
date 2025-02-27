@@ -4,7 +4,7 @@
 //
 //  Created by Manuel Wagner on 12.02.25.
 //
-
+import SwiftUI
 
 // EditTournamentView.swift
 struct EditTournamentView: View {

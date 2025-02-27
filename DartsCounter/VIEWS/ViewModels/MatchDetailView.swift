@@ -1,3 +1,11 @@
+//
+//  MatchDetailView.swift
+//  DartsCounter
+//
+//  Created by Manuel Wagner on 26.02.25.
+//
+import SwiftUI
+
 struct MatchDetailView: View {
     let match: Match
     let playerName: String
