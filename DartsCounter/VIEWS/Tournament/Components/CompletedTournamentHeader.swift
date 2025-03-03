@@ -12,7 +12,11 @@ struct CompletedTournamentHeader: View {
     }
     
     var progress: Double {
-        Double(completedMatches) / Double(totalMatches)
+        min(1.0, max(0.0, Double(completedMatches) / Double(totalMatches)))
+    }
+    
+    var modusText: String {
+        tournament.tournamentMode == .sets ? "Sets (\(tournament.legsToWin.description))" : "Legs (\(tournament.legsToWin.description))"
     }
     
     var body: some View {
@@ -54,6 +58,10 @@ struct CompletedTournamentHeader: View {
                             .foregroundColor(.green)
                             .font(.caption)
                     }
+                    
+                    Text("Modus: \(modusText)")
+                        .font(.caption)
+                        .foregroundColor(.gray)
                 }
             }
             

@@ -26,9 +26,30 @@ class TournamentManager: ObservableObject {
             players: tournament.players,
             tournamentId: tournament.id
         )
-        print("Debug - Adding Tournament with points: \(tournament.gamePoints.rawValue)")  // Neue Debug-Zeile
+        
+        print("Debug - Adding Tournament with points: \(tournament.gamePoints.rawValue)")
+        print("Debug - Tournament mode: \(tournament.tournamentMode.rawValue)")
+        
+        // Automatisch die Spiele mit Freilosen voranschreiten
+        processAutomaticByes(tournament: &newTournament)
+        
+        // Wichtig: Speichern nach der Freilos-Verarbeitung
         tournaments.append(newTournament)
         saveTournaments()
+        
+        // Für UI-Updates benachrichtigen
+        DispatchQueue.main.async {
+            self.objectWillChange.send()
+        }
+    }
+    
+    func reloadTournaments() {
+        loadTournaments()
+        
+        // Für UI-Updates benachrichtigen
+        DispatchQueue.main.async {
+            self.objectWillChange.send()
+        }
     }
     
     func updateTournament(tournamentId: UUID, name: String, players: [Player]) {
@@ -50,7 +71,7 @@ class TournamentManager: ObservableObject {
             saveTournaments()
         }
     }
-
+    
     struct TournamentPlayerRow: View {
         let player: Player
         let isSelected: Bool
@@ -163,6 +184,11 @@ class TournamentManager: ObservableObject {
                             return
                         }
                         
+                        // Prüfen, ob beide Spieler bekannt sind - automatischer Start für den nächsten Match
+                        if nextMatch.player1 != "" && nextMatch.player2 != "" {
+                            print("Debug - Both players assigned for next match. Ready to play!")
+                        }
+                        
                         tournaments[tournamentIndex].matches[nextMatchIndex] = nextMatch
                         print("Debug - Next match after update: P1: \(nextMatch.player1), P2: \(nextMatch.player2)")
                     }
@@ -183,6 +209,7 @@ class TournamentManager: ObservableObject {
             }
         }
     }
+    
     
     private func saveMatchToHistory(tournamentMatch: TournamentMatch, tournamentId: UUID) {
         // Extrahiere das Ergebnis aus dem score-String (z.B. "2-0")
@@ -368,7 +395,7 @@ class TournamentManager: ObservableObject {
             saveTournaments()
         }
     }
-
+    
     private func resetSubsequentMatches(in tournament: inout Tournament, startingFrom matchIndex: Int) {
         let currentMatch = tournament.matches[matchIndex]
         if let nextMatchNumber = currentMatch.nextMatchNumber {
@@ -390,6 +417,78 @@ class TournamentManager: ObservableObject {
             }
         }
     }
+    
+    private func processAutomaticByes(tournament: inout Tournament) {
+        // Finde alle Spiele mit Freilosen
+        let byeMatches = tournament.matches.filter {
+            ($0.player1 == "BYE" || $0.player2 == "BYE") && !$0.isCompleted
+        }
+        
+        // Verarbeite jedes Freilos-Spiel
+        for match in byeMatches {
+            let winner = match.player1 == "BYE" ? match.player2 : match.player1
+            print("Debug - Processing bye match: \(match.id), \(match.phase). Winner: \(winner)")
+            
+            // Vervollständige das Match
+            if let matchIndex = tournament.matches.firstIndex(where: { $0.id == match.id }) {
+                tournament.matches[matchIndex].isCompleted = true
+                tournament.matches[matchIndex].winner = winner
+                tournament.matches[matchIndex].score = "w.o."
+                
+                // Bringe den Gewinner in die nächste Runde
+                if let nextMatchNumber = match.nextMatchNumber,
+                   let nextPhaseIndex = TournamentSize.getSize(for: tournament.players.count).rounds.firstIndex(of: match.phase),
+                   nextPhaseIndex + 1 < TournamentSize.getSize(for: tournament.players.count).rounds.count {
+                    
+                    let nextPhase = TournamentSize.getSize(for: tournament.players.count).rounds[nextPhaseIndex + 1]
+                    print("Debug - Looking for next match: number \(nextMatchNumber), phase \(nextPhase)")
+                    
+                    if let nextMatchIndex = tournament.matches.firstIndex(where: {
+                        $0.matchNumber == nextMatchNumber && $0.phase == nextPhase
+                    }) {
+                        // Bestimme, ob in player1 oder player2 Position
+                        if match.matchNumber % 2 == 1 {
+                            tournament.matches[nextMatchIndex].player1 = winner
+                            print("Debug - Set player1 to \(winner) in match \(nextMatchNumber)")
+                        } else {
+                            tournament.matches[nextMatchIndex].player2 = winner
+                            print("Debug - Set player2 to \(winner) in match \(nextMatchNumber)")
+                        }
+                        
+                        // Nachdem wir den Spieler gesetzt haben, überprüfen wir, ob das nächste Match jetzt zwei Spieler hat
+                        // und einer davon BYE ist. In diesem Fall wird das Match automatisch abgeschlossen.
+                        let updatedNextMatch = tournament.matches[nextMatchIndex]
+                        if (updatedNextMatch.player1 != "" && updatedNextMatch.player2 == "BYE") ||
+                            (updatedNextMatch.player2 != "" && updatedNextMatch.player1 == "BYE") {
+                            
+                            let nextWinner = updatedNextMatch.player1 == "BYE" ? updatedNextMatch.player2 : updatedNextMatch.player1
+                            tournament.matches[nextMatchIndex].isCompleted = true
+                            tournament.matches[nextMatchIndex].winner = nextWinner
+                            tournament.matches[nextMatchIndex].score = "w.o."
+                            tournament.matches[nextMatchIndex].isBye = true
+                            
+                            print("Debug - Auto-completing next match. Winner: \(nextWinner)")
+                            
+                            // WICHTIG: Rufen Sie processAutomaticByes NICHT rekursiv auf - das könnte zu Problemen führen
+                            // Stattdessen speichern wir und lassen die nächste Iteration dieses Matches verarbeiten
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Nachdem alle Freilose der aktuellen Runde verarbeitet wurden, suchen wir weitere Freilose
+        // die möglicherweise in der nächsten Runde entstanden sind
+        let newByeMatches = tournament.matches.filter {
+            ($0.player1 == "BYE" && $0.player2 != "" && $0.player2 != "BYE") ||
+            ($0.player2 == "BYE" && $0.player1 != "" && $0.player1 != "BYE") &&
+            !$0.isCompleted
+        }
+        
+        if !newByeMatches.isEmpty {
+            print("Debug - Found \(newByeMatches.count) new bye matches. Processing again.")
+            // Es gibt weitere Freilose zu verarbeiten - nochmals ausführen
+            processAutomaticByes(tournament: &tournament)
+        }
+    }
 }
-    
-    

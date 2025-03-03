@@ -106,26 +106,26 @@ struct TournamentDetailView: View {
         .fullScreenCover(isPresented: $showingGameView) {
             if let match = selectedMatch {
                 GameView(
-                    gameMode: .fiveZeroOne,
-                    opponentType: .human,
-                    botDifficulty: .easy,
-                    guestName: match.player2,
-                    homeName: match.player1,
-                    historyManager: tournamentManager.historyManager,
-                    playerManager: tournamentManager.playerManager,
-                    numberOfSets: tournament.legsToWin.rawValue,
-                    startingScore: tournament.gamePoints.rawValue,
-                    savedGameState: nil,
-                    matchId: match.id,
-                    onMatchComplete: { winner, score in
-                        tournamentManager.completeMatch(
-                            tournamentId: tournament.id,
-                            matchId: match.id,
-                            winner: winner,
-                            score: score
-                        )
-                    }
-                )
+                                    gameMode: .fiveZeroOne,
+                                    opponentType: .human,
+                                    botDifficulty: .easy,
+                                    guestName: match.player2,
+                                    homeName: match.player1,
+                                    historyManager: tournamentManager.historyManager,
+                                    playerManager: tournamentManager.playerManager,
+                                    numberOfSets: tournament.tournamentMode == .sets ? tournament.legsToWin.rawValue : 1,
+                                    startingScore: tournament.gamePoints.rawValue,
+                                    savedGameState: nil,
+                                    matchId: match.id,
+                                    onMatchComplete: { winner, score in
+                                        tournamentManager.completeMatch(
+                                            tournamentId: tournament.id,
+                                            matchId: match.id,
+                                            winner: winner,
+                                            score: score
+                                        )
+                                    }
+                                )
             }
         }
         .onDisappear {
@@ -134,9 +134,17 @@ struct TournamentDetailView: View {
         }
         
         .onChange(of: upcomingMatches) { _, _ in
-                    // Force view update
-                    tournamentManager.objectWillChange.send()
-                }
+                            // Force view update
+                            self.refreshTrigger = UUID()
+                            tournamentManager.objectWillChange.send()
+                        }
+                        
+                    // Erzwingt Aktualisierung beim Erscheinen der View
+                    .onAppear {
+                        // Sicherstellen, dass die Daten aktuell sind
+                        tournamentManager.reloadTournaments()
+                                   self.refreshTrigger = UUID()
+                    }
     }
     
     private func getMatchDescription() -> String {
@@ -157,15 +165,14 @@ struct UpcomingMatchCard: View {
                     .foregroundColor(.gray)
                 
                 HStack {
-                    // Debug-Text, um zu sehen was tatsächlich angezeigt wird
-                    Text("[\(match.player1)]")
+                    // Zeige "TBD" an, wenn der Spielername leer ist
+                    Text(match.player1.isEmpty ? "TBD" : match.player1)
                         .foregroundColor(.white)
                     
                     Text("vs")
                         .foregroundColor(.gray)
                     
-                    // Debug-Text, um zu sehen was tatsächlich angezeigt wird
-                    Text("[\(match.player2)]")
+                    Text(match.player2.isEmpty ? "TBD" : match.player2)
                         .foregroundColor(.white)
                 }
             }

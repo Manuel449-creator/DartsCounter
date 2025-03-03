@@ -13,11 +13,12 @@ struct CreateTournamentView: View {
    @ObservedObject var tournamentManager: TournamentManager
    @ObservedObject var playerManager: PlayerManager
    
-   @State private var tournamentName = ""
-   @State private var selectedPlayers: Set<UUID> = []
-   @State private var showingAddPlayerSheet = false
-   @State private var selectedGamePoints: GamePoints = .fiveOOne
-   @State private var selectedLegsToWin: LegsToWin = .three
+    @State private var tournamentName = ""
+       @State private var selectedPlayers: Set<UUID> = []
+       @State private var showingAddPlayerSheet = false
+       @State private var selectedGamePoints: GamePoints = .fiveOOne
+       @State private var selectedLegsToWin: LegsToWin = .three
+       @State private var selectedTournamentMode: TournamentMode = .sets
    
    var body: some View {
        NavigationView {
@@ -50,6 +51,8 @@ struct CreateTournamentView: View {
                        }
                        .padding(.horizontal)
                        
+                       
+                       
                        ScrollView {
                            VStack(spacing: 10) {
                                ForEach(playerManager.players) { player in
@@ -71,42 +74,67 @@ struct CreateTournamentView: View {
                    }
                    
                    // Spieleinstellungen
-                   VStack(alignment: .leading) {
-                       Text("Spieleinstellungen")
-                           .font(.headline)
-                           .foregroundColor(.white)
-                           .padding(.horizontal)
-                       
-                       Picker("Punkte", selection: $selectedGamePoints) {
-                           ForEach(GamePoints.allCases, id: \.self) { points in
-                               Text(points.description).tag(points)
-                           }
-                       }
-                       .pickerStyle(SegmentedPickerStyle())
-                       .padding()
-                       
-                       Picker("Legs", selection: $selectedLegsToWin) {
-                           ForEach(LegsToWin.allCases, id: \.self) { legs in
-                               Text(legs.description).tag(legs)
-                           }
-                       }
-                       .pickerStyle(SegmentedPickerStyle())
-                       .padding()
-                   }
+                                      VStack(alignment: .leading) {
+                                          Text("Spieleinstellungen")
+                                              .font(.headline)
+                                              .foregroundColor(.white)
+                                              .padding(.horizontal)
+                                          
+                                          // Turniermodus: Sets oder Legs
+                                          VStack(alignment: .leading) {
+                                              Text("Spielmodus")
+                                                  .font(.subheadline)
+                                                  .foregroundColor(.gray)
+                                                  .padding(.horizontal)
+                                              
+                                              Picker("Turniermodus", selection: $selectedTournamentMode) {
+                                                  ForEach(TournamentMode.allCases, id: \.self) { mode in
+                                                      Text(mode.rawValue).tag(mode)
+                                                  }
+                                              }
+                                              .pickerStyle(SegmentedPickerStyle())
+                                              .padding(.horizontal)
+                                          }
+                                          
+                                          Picker("Punkte", selection: $selectedGamePoints) {
+                                              ForEach(GamePoints.allCases, id: \.self) { points in
+                                                  Text(points.description).tag(points)
+                                              }
+                                          }
+                                          .pickerStyle(SegmentedPickerStyle())
+                                          .padding()
+                                          
+                                          VStack(alignment: .leading) {
+                                              Text(selectedTournamentMode == .sets ? "Sets" : "Legs")
+                                                  .font(.subheadline)
+                                                  .foregroundColor(.gray)
+                                                  .padding(.horizontal)
+                                              
+                                              Picker(selectedTournamentMode == .sets ? "Sets" : "Legs", selection: $selectedLegsToWin) {
+                                                  ForEach(LegsToWin.allCases, id: \.self) { legs in
+                                                      Text(legs.description).tag(legs)
+                                                  }
+                                              }
+                                              .pickerStyle(SegmentedPickerStyle())
+                                              .padding(.horizontal)
+                                          }
+                                      }
                    
                    Button(action: {
-                       let selectedPlayersList = playerManager.players.filter { selectedPlayers.contains($0.id) }
-                       let tournament = Tournament(
-                           name: tournamentName,
-                           players: selectedPlayersList,
-                           gamePoints: selectedGamePoints,
-                           legsToWin: selectedLegsToWin
-                       )
-                       print("Debug - Creating Tournament with points: \(selectedGamePoints.rawValue)")  // Neue Debug-Zeile
-                       print("Debug - Tournament object points: \(tournament.gamePoints.rawValue)")      // Neue Debug-Zeile
-                       tournamentManager.addTournament(tournament)
-                       dismiss()
-                   }) {
+                                          let selectedPlayersList = playerManager.players.filter { selectedPlayers.contains($0.id) }
+                                          let tournament = Tournament(
+                                              name: tournamentName,
+                                              players: selectedPlayersList,
+                                              gamePoints: selectedGamePoints,
+                                              legsToWin: selectedLegsToWin,
+                                              tournamentMode: selectedTournamentMode
+                                          )
+                                          print("Debug - Creating Tournament with points: \(selectedGamePoints.rawValue)")
+                                          print("Debug - Tournament object points: \(tournament.gamePoints.rawValue)")
+                                          print("Debug - Tournament mode: \(selectedTournamentMode.rawValue)")
+                                          tournamentManager.addTournament(tournament)
+                                          dismiss()
+                                      }) {
                        Text("Turnier erstellen")
                            .foregroundColor(.white)
                            .padding()

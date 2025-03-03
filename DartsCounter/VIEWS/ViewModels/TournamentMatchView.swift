@@ -165,7 +165,7 @@ struct PlayerMatchRow: View {
     
     var body: some View {
         HStack {
-            Text(name)
+            Text(name.isEmpty ? "--" : name)
                 .foregroundColor(isWinner ? .green : .white)
                 .fontWeight(isWinner ? .bold : .regular)
                 .scaleEffect(animate ? 1.05 : 1.0)

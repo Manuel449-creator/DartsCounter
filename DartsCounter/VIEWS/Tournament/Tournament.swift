@@ -16,6 +16,7 @@ struct Tournament: Codable, Identifiable {
     var isCompleted: Bool
     var gamePoints: GamePoints
     var legsToWin: LegsToWin
+    var tournamentMode: TournamentMode
     
     init(id: UUID = UUID(),
          name: String,
@@ -24,7 +25,8 @@ struct Tournament: Codable, Identifiable {
          winner: String? = nil,
          isCompleted: Bool = false,
          gamePoints: GamePoints = .fiveOOne,
-         legsToWin: LegsToWin = .three) {
+         legsToWin: LegsToWin = .three,
+         tournamentMode: TournamentMode = .sets) {
         self.id = id
         self.name = name
         self.date = Date()
@@ -34,6 +36,7 @@ struct Tournament: Codable, Identifiable {
         self.isCompleted = isCompleted
         self.gamePoints = gamePoints
         self.legsToWin = legsToWin
+        self.tournamentMode = tournamentMode
     }
     
     mutating func updateMatch(matchId: UUID, winner: String, score: String) {
@@ -127,16 +130,28 @@ extension Tournament {
                 
                 print("Debug - Creating first round match: \(matchNumber) -> \(String(describing: nextMatchNumber))")
                 
+                // Prüfen, ob es ein Freilos ist
+                let isBye = player1 == "BYE" || player2 == "BYE"
+                let winner: String?
+                if isBye {
+                    // Wenn einer der Spieler ein Freilos hat, gewinnt der andere automatisch
+                    winner = player1 == "BYE" ? player2 : player1
+                } else {
+                    winner = nil
+                }
+                
                 let match = TournamentMatch(
                     id: UUID(),
                     player1: player1,
                     player2: player2,
-                    phase: firstPhase,
+                    phase: firstPhase,        // Diese Reihenfolge ist korrekt
                     matchNumber: matchNumber,
                     nextMatchNumber: nextMatchNumber,
-                    isCompleted: player2 == "BYE",
-                    isBye: player2 == "BYE",
-                    tournamentId: tournamentId
+                    isCompleted: isBye,
+                    isBye: isBye,
+                    tournamentId: tournamentId,
+                    winner: winner,           // Diese Parameter sind
+                    score: isBye ? "w.o." : nil  // in der richtigen Reihenfolge
                 )
                 matches.append(match)
                 matchNumber += 1
@@ -168,12 +183,14 @@ extension Tournament {
                     id: UUID(),
                     player1: "",
                     player2: "",
-                    phase: phase,
+                    phase: phase,             // Diese Reihenfolge ist korrekt
                     matchNumber: currentMatchNumber,
                     nextMatchNumber: nextMatchNumber,
                     isCompleted: false,
                     isBye: false,
-                    tournamentId: tournamentId
+                    tournamentId: tournamentId,
+                    winner: nil,              // Diese Parameter sind
+                    score: nil                // in der richtigen Reihenfolge
                 )
                 matches.append(match)
             }

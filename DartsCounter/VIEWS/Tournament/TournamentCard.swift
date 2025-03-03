@@ -18,9 +18,9 @@ struct TournamentCard: View {
     @State private var selectedMatch: TournamentMatch?
     
     private func debugGameSettings() {
-            print("Debug - Tournament Points: \(tournament.gamePoints.rawValue)")
-            print("Debug - Tournament Legs: \(tournament.legsToWin.rawValue)")
-        }
+        print("Debug - Tournament Points: \(tournament.gamePoints.rawValue)")
+        print("Debug - Tournament Legs: \(tournament.legsToWin.rawValue)")
+    }
     
     var body: some View {
         NavigationLink(destination: TournamentDetailView(tournamentManager: tournamentManager, tournament: tournament)) {
@@ -97,7 +97,7 @@ struct TournamentCard: View {
                     homeName: match.player1,
                     historyManager: tournamentManager.historyManager,
                     playerManager: tournamentManager.playerManager,
-                    numberOfSets: tournament.legsToWin.rawValue,
+                    numberOfSets: tournament.tournamentMode == .sets ? tournament.legsToWin.rawValue : 1,
                     startingScore: tournament.gamePoints.rawValue,
                     savedGameState: nil,
                     matchId: match.id,
@@ -110,13 +110,15 @@ struct TournamentCard: View {
                         )
                     }
                 )
-                .onAppear {
-                    print("Debug - Tournament Points: \(tournament.gamePoints.rawValue)")
-                    print("Debug - Selected Game Mode: \(tournament.gamePoints)")
-                    print("Debug - Selected Legs: \(tournament.legsToWin.rawValue)")
-                    
-                    }
+                
             }
+        }
+        .onAppear {
+            tournamentManager.reloadTournaments()
+            print("Debug - Tournament Points: \(tournament.gamePoints.rawValue)")
+            print("Debug - Selected Game Mode: \(tournament.gamePoints)")
+            print("Debug - Selected Legs/Sets: \(tournament.legsToWin.rawValue)")
+            print("Debug - Tournament Mode: \(tournament.tournamentMode.rawValue)")
         }
     }
 }

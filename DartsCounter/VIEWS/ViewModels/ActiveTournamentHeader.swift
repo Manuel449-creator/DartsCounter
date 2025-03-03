@@ -8,6 +8,8 @@
 
 import SwiftUI
 
+import SwiftUI
+
 struct ActiveTournamentHeader: View {
     let tournament: Tournament
     
@@ -20,7 +22,11 @@ struct ActiveTournamentHeader: View {
     }
     
     var progress: Double {
-        totalMatches > 0 ? Double(completedMatches) / Double(totalMatches) : 0
+        totalMatches > 0 ? min(1.0, max(0.0, Double(completedMatches) / Double(totalMatches))) : 0
+    }
+    
+    var modusText: String {
+        tournament.tournamentMode == .sets ? "Sets (\(tournament.legsToWin.description))" : "Legs (\(tournament.legsToWin.description))"
     }
     
     var body: some View {
@@ -28,6 +34,18 @@ struct ActiveTournamentHeader: View {
             Text("\(tournament.players.count) Spieler")
                 .font(.headline)
                 .foregroundColor(.white)
+            
+            HStack {
+                Text("Punktzahl: \(tournament.gamePoints.description)")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+                
+                Spacer()
+                
+                Text("Modus: \(modusText)")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+            }
             
             Text("\(completedMatches) von \(totalMatches) Spielen abgeschlossen")
                 .font(.subheadline)

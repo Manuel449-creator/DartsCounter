@@ -6,6 +6,8 @@
 //
 import SwiftUI
 
+import SwiftUI
+
 struct MatchDetailView: View {
     let match: Match
     let playerName: String
@@ -28,7 +30,7 @@ struct MatchDetailView: View {
     }
     
     var opponentLegsWon: Int {
-        match.legs.filter { $0.winner != playerName && $0.winner != nil }.count
+        match.legs.filter { $0.winner != playerName && $0.winner.isEmpty == false }.count
     }
     
     var isWinner: Bool {

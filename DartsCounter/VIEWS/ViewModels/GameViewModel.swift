@@ -225,28 +225,42 @@ class GameViewModel: ObservableObject {
     }
 
     private func checkForLegWin() {
-        if playerScore == 0 || opponentScore == 0 {
-            let isPlayer1Win = playerScore == 0
-            
-            // Setze die GameState Werte vor dem resetForNewLeg
-            gameState.handleLegWin(wonByPlayer1: isPlayer1Win)
-            
-            let legWinner = isPlayer1Win ? homeName : opponentName
-            legs.append(Leg(
-                id: UUID(),
-                turns: turnHistory,
-                winner: legWinner,
-                startingPlayer: gameState.isPlayer1Starting ? homeName : opponentName
-            ))
-                        
-            if gameState.player1Sets > numberOfSets / 2 || gameState.player2Sets > numberOfSets / 2 {
-                shouldShowGameEndAlert = true
-                onMatchComplete?(legWinner, "\(gameState.player1Sets)-\(gameState.player2Sets)")
-            } else {
-                resetForNewLeg()
+            if playerScore == 0 || opponentScore == 0 {
+                let isPlayer1Win = playerScore == 0
+                
+                // Setze die GameState Werte vor dem resetForNewLeg
+                gameState.handleLegWin(wonByPlayer1: isPlayer1Win)
+                
+                let legWinner = isPlayer1Win ? homeName : opponentName
+                legs.append(Leg(
+                    id: UUID(),
+                    turns: turnHistory,
+                    winner: legWinner,
+                    startingPlayer: gameState.isPlayer1Starting ? homeName : opponentName
+                ))
+                
+                // Prüfen, ob das Spiel beendet ist
+                if numberOfSets == 1 {
+                    // Legs-Modus: Prüfen, ob genügend Legs gewonnen wurden
+                    let player1LegsTotal = legs.filter { $0.winner == homeName }.count
+                    let player2LegsTotal = legs.filter { $0.winner == opponentName }.count
+                    let legsToWinThreshold = numberOfSets > 3 ? numberOfSets / 2 + 1 : 2 // Best of 3 = 2 Legs zum Sieg
+                    
+                    if player1LegsTotal >= legsToWinThreshold || player2LegsTotal >= legsToWinThreshold {
+                        shouldShowGameEndAlert = true
+                        onMatchComplete?(legWinner, "\(player1LegsTotal)-\(player2LegsTotal)")
+                    } else {
+                        resetForNewLeg()
+                    }
+                } else if gameState.player1Sets > numberOfSets / 2 || gameState.player2Sets > numberOfSets / 2 {
+                    // Sets-Modus: Mehrere Sets müssen gewonnen werden
+                    shouldShowGameEndAlert = true
+                    onMatchComplete?(legWinner, "\(gameState.player1Sets)-\(gameState.player2Sets)")
+                } else {
+                    resetForNewLeg()
+                }
             }
         }
-    }
     
     // Zu GameViewModel hinzufügen:
 
