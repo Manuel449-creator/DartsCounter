@@ -10,6 +10,7 @@
 import SwiftUI
 
 struct GamePlayerHeader: View {
+    @Environment(\.colorScheme) private var colorScheme
     let name: String
     let legs: Int
     let sets: Int
@@ -24,20 +25,20 @@ struct GamePlayerHeader: View {
                     .frame(width: 10, height: 10)
                 
                 Image(systemName: "person.circle.fill")
-                    .foregroundColor(.gray)
+                    .foregroundColor(AppColors.secondaryText(for: colorScheme))
                 
                 Text(name)
-                    .foregroundColor(.white)
+                    .foregroundColor(AppColors.text(for: colorScheme))
                 
                 VStack(spacing: 4) {
                     Text("S\(sets)")
-                        .foregroundColor(.white)
+                        .foregroundColor(.white) // Bleibt weiß auf blauem Hintergrund
                         .padding(.horizontal, 8)
                         .background(Color.blue)
                         .cornerRadius(4)
                     
                     Text("L\(legs)")
-                        .foregroundColor(.white)
+                        .foregroundColor(.white) // Bleibt weiß auf grünem Hintergrund
                         .padding(.horizontal, 8)
                         .background(Color.green)
                         .cornerRadius(4)

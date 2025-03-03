@@ -72,29 +72,6 @@ class TournamentManager: ObservableObject {
         }
     }
     
-    struct TournamentPlayerRow: View {
-        let player: Player
-        let isSelected: Bool
-        let onTap: () -> Void
-        
-        var body: some View {
-            Button(action: onTap) {
-                HStack {
-                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .foregroundColor(isSelected ? .blue : .gray)
-                    
-                    Text(player.name)
-                        .foregroundColor(.white)
-                    
-                    Spacer()
-                }
-                .padding()
-                .background(Color(white: 0.15))
-                .cornerRadius(10)
-            }
-        }
-    }
-    
     func completeMatch(tournamentId: UUID, matchId: UUID, winner: String, score: String) {
         print("Debug - Completing match. Tournament: \(tournamentId), Match: \(matchId), Winner: \(winner)")
         

@@ -3,11 +3,11 @@
 //  DartsCounter
 //
 //  Created by Manuel Wagner on 12.02.25.
-//
+
 import SwiftUI
 
-// EditTournamentView.swift
 struct EditTournamentView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) var dismiss
     @ObservedObject var tournamentManager: TournamentManager
     let tournament: Tournament
@@ -25,20 +25,21 @@ struct EditTournamentView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.black.edgesIgnoringSafeArea(.all)
+                AppColors.background(for: colorScheme).edgesIgnoringSafeArea(.all)
                 
-                VStack(spacing: 20) {
-                    TextField("Turniername", text: $tournamentName)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding()
-                    
-                    VStack(alignment: .leading) {
-                        Text("Teilnehmende Spieler")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .padding(.horizontal)
+                ScrollView {
+                    VStack(spacing: 20) {
+                        TextField("Turniername", text: $tournamentName)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding()
+                            .foregroundColor(AppColors.text(for: colorScheme))
                         
-                        ScrollView {
+                        VStack(alignment: .leading) {
+                            Text("Teilnehmende Spieler")
+                                .font(.headline)
+                                .foregroundColor(AppColors.text(for: colorScheme))
+                                .padding(.horizontal)
+                            
                             VStack(spacing: 10) {
                                 ForEach(tournamentManager.playerManager.players) { player in
                                     TournamentPlayerRow(
@@ -57,6 +58,7 @@ struct EditTournamentView: View {
                             .padding()
                         }
                     }
+                    .padding(.bottom, 20)
                 }
             }
             .navigationTitle("Turnier bearbeiten")
@@ -69,6 +71,7 @@ struct EditTournamentView: View {
                 }
                 .disabled(!isFormValid)
             )
+            .foregroundColor(AppColors.text(for: colorScheme))
         }
     }
     

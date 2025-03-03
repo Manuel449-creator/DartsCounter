@@ -33,6 +33,7 @@ struct QuickStatsView: View {
 }
 
 struct QuickStatItem: View {
+    @Environment(\.colorScheme) private var colorScheme
     let title: String
     let value: String
     let icon: String
@@ -41,20 +42,20 @@ struct QuickStatItem: View {
         VStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.title2)
-                .foregroundColor(.blue)
+                .foregroundColor(AppColors.accent)
             
             Text(value)
                 .font(.title3)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
+                .foregroundColor(AppColors.text(for: colorScheme))
             
             Text(title)
                 .font(.caption)
-                .foregroundColor(.gray)
+                .foregroundColor(AppColors.secondaryText(for: colorScheme))
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Color(white: 0.1))
+        .background(AppColors.cardBackground(for: colorScheme))
         .cornerRadius(12)
     }
 }

@@ -1,3 +1,11 @@
+//
+//  AppTheme.swift
+//  DartsCounter
+//
+//  Created by Manuel Wagner on 03.03.25.
+//
+
+
 import SwiftUI
 
 // MARK: - Theme Enum

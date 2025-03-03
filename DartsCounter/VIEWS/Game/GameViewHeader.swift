@@ -7,6 +7,7 @@
 import SwiftUI
 
 struct GameViewHeader: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Binding var showQuitAlert: Bool
     let gameStatus: String
     
@@ -16,13 +17,13 @@ struct GameViewHeader: View {
                 showQuitAlert = true
             }) {
                 Text("Quit")
-                    .foregroundColor(.white)
+                    .foregroundColor(AppColors.text(for: colorScheme))
             }
             
             Spacer()
             
             Text(gameStatus)
-                .foregroundColor(.white)
+                .foregroundColor(AppColors.text(for: colorScheme))
                 .font(.headline)
             
             Spacer()
@@ -30,15 +31,16 @@ struct GameViewHeader: View {
             HStack(spacing: 15) {
                 Button(action: {}) {
                     Image(systemName: "chart.line.uptrend.xyaxis")
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.text(for: colorScheme))
                 }
                 
                 Button(action: {}) {
                     Image(systemName: "gearshape")
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.text(for: colorScheme))
                 }
             }
         }
         .padding()
+        .background(AppColors.cardBackground(for: colorScheme))
     }
 }

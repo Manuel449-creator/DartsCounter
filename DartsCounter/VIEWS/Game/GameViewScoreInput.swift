@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct GameViewScoreInput: View {
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var viewModel: GameViewModel
     @Binding var showImpossibleScoreAlert: Bool
     
@@ -10,7 +11,7 @@ struct GameViewScoreInput: View {
             ZStack {
                 Color(red: 1, green: 0.3, blue: 0.2)
                 Text("\(viewModel.isPlayerTurn ? viewModel.homeName : viewModel.opponentName)'s TURN TO THROW!")
-                    .foregroundColor(.white)
+                    .foregroundColor(.white) // Bleibt weiß auf rotem Hintergrund
                     .font(.headline)
                     .padding()
             }
@@ -19,14 +20,14 @@ struct GameViewScoreInput: View {
             HStack {
                 Button(action: {}) {
                     Image(systemName: "square.grid.3x3.fill")
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.text(for: colorScheme))
                         .font(.title2)
                 }
                 .padding()
                 
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.white)
+                        .fill(colorScheme == .dark ? Color.white : Color.white)
                         .frame(height: 36)
                     
                     if viewModel.inputScore.isEmpty {
@@ -36,7 +37,7 @@ struct GameViewScoreInput: View {
                     }
                     
                     Text(viewModel.inputScore)
-                        .foregroundColor(.black)
+                        .foregroundColor(.black) // Immer schwarz auf weißem Eingabefeld
                         .padding(.leading, 8)
                 }
                 
@@ -49,7 +50,7 @@ struct GameViewScoreInput: View {
                 }) {
                     Text("SUBMIT\nSCORE")
                         .multilineTextAlignment(.center)
-                        .foregroundColor(.white)
+                        .foregroundColor(.white) // Bleibt weiß auf grünem Hintergrund
                         .padding()
                         .background(Color.green)
                         .cornerRadius(10)

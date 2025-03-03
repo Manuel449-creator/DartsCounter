@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct AnalysisView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var historyManager: MatchHistoryManager
     @ObservedObject var playerManager: PlayerManager
     @State private var selectedPlayer: Player?
@@ -43,18 +44,18 @@ struct AnalysisView: View {
     
     var body: some View {
         ZStack {
-            Color.black.edgesIgnoringSafeArea(.all)
+            AppColors.background(for: colorScheme).edgesIgnoringSafeArea(.all)
             
             VStack(spacing: 0) {
                 // Header
                 HStack {
                     Text("Statistiken")
                         .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.text(for: colorScheme))
                     Spacer()
                 }
                 .padding()
-                .background(Color(white: 0.1))
+                .background(AppColors.cardBackground(for: colorScheme))
                 
                 ScrollView {
                     VStack(spacing: 0) {
@@ -86,7 +87,7 @@ struct AnalysisView: View {
                                     VStack(alignment: .leading, spacing: 12) {
                                         Text("Unbeendete Spiele")
                                             .font(.headline)
-                                            .foregroundColor(.white)
+                                            .foregroundColor(AppColors.text(for: colorScheme))
                                             .padding(.top)
                                         
                                         ForEach(unfinishedMatches) { match in
@@ -123,41 +124,42 @@ struct AnalysisView: View {
                 }
             }
         }
-        
-        
-            
         .sheet(isPresented: $showingGameResumeSheet, onDismiss: {
-                    selectedMatch = nil
-                }) {
-                    if let match = selectedMatch,
-                       let gameState = match.gameState {
-                        GameView(
-                            gameMode: .fiveZeroOne,
-                            opponentType: .human,
-                            botDifficulty: .easy,
-                            guestName: match.player2,
-                            homeName: match.player1,
-                            historyManager: historyManager,
-                            playerManager: playerManager,
-                            numberOfSets: gameState.numberOfSets,
-                            startingScore: GamePoints.fiveOOne.rawValue,
-                            savedGameState: gameState,
-                            matchId: match.id,
-                            onMatchComplete: { winner, score in
-                                historyManager.updateMatch(match)
-                            }
-                        )
+            selectedMatch = nil
+        }) {
+            if let match = selectedMatch,
+               let gameState = match.gameState {
+                GameView(
+                    gameMode: .fiveZeroOne,
+                    opponentType: .human,
+                    botDifficulty: .easy,
+                    guestName: match.player2,
+                    homeName: match.player1,
+                    historyManager: historyManager,
+                    playerManager: playerManager,
+                    numberOfSets: gameState.numberOfSets,
+                    startingScore: GamePoints.fiveOOne.rawValue,
+                    savedGameState: gameState,
+                    matchId: match.id,
+                    onMatchComplete: { winner, score in
+                        historyManager.updateMatch(match)
                     }
-                }
-                .onAppear {
-                    refreshStats()
-                }
-                .onChange(of: selectedPlayer) { _, _ in
-                    refreshStats()
+                )
+            }
+        }
+        .onAppear {
+            refreshStats()
+        }
+        .onChange(of: selectedPlayer) { _, _ in
+            refreshStats()
         }
     }
-    
+}
+
+// MARK: - UnfinishedMatchRow
+extension AnalysisView {
     struct UnfinishedMatchRow: View {
+        @Environment(\.colorScheme) private var colorScheme
         let match: Match
         let playerName: String
         let onResume: () -> Void
@@ -177,11 +179,11 @@ struct AnalysisView: View {
                     VStack(alignment: .leading) {
                         Text("\(match.player1) vs \(match.player2)")
                             .fontWeight(.medium)
-                            .foregroundColor(.white)
+                            .foregroundColor(AppColors.text(for: colorScheme))
                         
                         Text(formattedDate)
                             .font(.caption)
-                            .foregroundColor(.gray)
+                            .foregroundColor(AppColors.secondaryText(for: colorScheme))
                     }
                     
                     Spacer()
@@ -201,7 +203,7 @@ struct AnalysisView: View {
                 }
             }
             .padding()
-            .background(Color(white: 0.15))
+            .background(AppColors.cardBackground(for: colorScheme))
             .cornerRadius(12)
             .alert("Spiel löschen", isPresented: $showingDeleteAlert) {
                 Button("Abbrechen", role: .cancel) { }

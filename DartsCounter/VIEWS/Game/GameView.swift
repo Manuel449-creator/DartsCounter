@@ -7,6 +7,7 @@
 import SwiftUI
 
 struct GameView: View {
+    @Environment(\.colorScheme) private var colorScheme
     var gameMode: GameMode
     var opponentType: OpponentType
     var botDifficulty: BotDifficulty
@@ -29,46 +30,46 @@ struct GameView: View {
     @State private var showQuitAlert = false
     
     init(gameMode: GameMode,
-           opponentType: OpponentType,
-           botDifficulty: BotDifficulty,
-           guestName: String,
-           homeName: String,
-           historyManager: MatchHistoryManager,
-           playerManager: PlayerManager,
-           numberOfSets: Int,
-           startingScore: Int,
-           savedGameState: SavedGameState? = nil,
-           matchId: UUID? = nil,
-           onMatchComplete: ((String, String) -> Void)? = nil) {
-          
-          self.gameMode = gameMode
-          self.opponentType = opponentType
-          self.botDifficulty = botDifficulty
-          self.guestName = guestName
-          self.homeName = homeName
-          self.historyManager = historyManager
-          self.playerManager = playerManager
-          self.numberOfSets = numberOfSets
-          self.startingScore = startingScore
-          self.savedGameState = savedGameState
-          self.matchId = matchId
-          self.onMatchComplete = onMatchComplete
-          
-          _viewModel = StateObject(wrappedValue: GameViewModel(
-              savedGameState: savedGameState,
-              homeName: homeName,
-              guestName: guestName,
-              opponentType: opponentType,
-              botDifficulty: botDifficulty,
-              numberOfSets: numberOfSets,
-              startingScore: startingScore,
-              onMatchComplete: onMatchComplete
-          ))
-      }
+         opponentType: OpponentType,
+         botDifficulty: BotDifficulty,
+         guestName: String,
+         homeName: String,
+         historyManager: MatchHistoryManager,
+         playerManager: PlayerManager,
+         numberOfSets: Int,
+         startingScore: Int,
+         savedGameState: SavedGameState? = nil,
+         matchId: UUID? = nil,
+         onMatchComplete: ((String, String) -> Void)? = nil) {
+        
+        self.gameMode = gameMode
+        self.opponentType = opponentType
+        self.botDifficulty = botDifficulty
+        self.guestName = guestName
+        self.homeName = homeName
+        self.historyManager = historyManager
+        self.playerManager = playerManager
+        self.numberOfSets = numberOfSets
+        self.startingScore = startingScore
+        self.savedGameState = savedGameState
+        self.matchId = matchId
+        self.onMatchComplete = onMatchComplete
+        
+        _viewModel = StateObject(wrappedValue: GameViewModel(
+            savedGameState: savedGameState,
+            homeName: homeName,
+            guestName: guestName,
+            opponentType: opponentType,
+            botDifficulty: botDifficulty,
+            numberOfSets: numberOfSets,
+            startingScore: startingScore,
+            onMatchComplete: onMatchComplete
+        ))
+    }
     
     var body: some View {
         ZStack {
-            Color.black.edgesIgnoringSafeArea(.all)
+            AppColors.background(for: colorScheme).edgesIgnoringSafeArea(.all)
             
             VStack(spacing: 0) {
                 GameViewHeader(
@@ -131,12 +132,13 @@ struct GameView: View {
             Text("\(viewModel.gameState.player1Sets > viewModel.gameState.player2Sets ? homeName : viewModel.opponentName) hat gewonnen!")
         }
     }
+    
     private func handleGameEnd() {
         if let winner = viewModel.gameState.winner,
-           let _ = tournamentMatch,    // match durch _ ersetzt
-           let _ = tournamentId {      // id durch _ ersetzt
+           let _ = tournamentMatch,
+           let _ = tournamentId {
             onMatchComplete?(winner, "\(viewModel.gameState.player1Sets)-\(viewModel.gameState.player2Sets)")
         }
         showGameEndAlert = true
     }
-    }
+}

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct NumberPadView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Binding var inputScore: String
     let onUndo: () -> Void
     
@@ -37,6 +38,7 @@ struct NumberPadView: View {
 }
 
 struct NumberButton: View {
+    @Environment(\.colorScheme) private var colorScheme
     let text: String
     let action: () -> Void
     
@@ -45,8 +47,8 @@ struct NumberButton: View {
             Text(text)
                 .font(.system(size: 32, weight: .medium))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .foregroundColor(.white)
-                .background(Color(white: 0.2))
+                .foregroundColor(AppColors.text(for: colorScheme))
+                .background(AppColors.cardBackground(for: colorScheme))
         }
         .frame(height: 60)
     }

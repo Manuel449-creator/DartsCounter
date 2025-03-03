@@ -6,7 +6,10 @@
 //
 import SwiftUI
 
+import SwiftUI
+
 struct GameViewStatistics: View {
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var viewModel: GameViewModel
     
     var body: some View {
@@ -43,6 +46,7 @@ struct GameViewStatistics: View {
 
     
     struct StatisticsView: View {
+        @Environment(\.colorScheme) private var colorScheme
         let threeDartAverage: String
         let lastScore: String
         let dartsThrown: String
@@ -57,16 +61,17 @@ struct GameViewStatistics: View {
     }
     
     struct StatRow: View {
+        @Environment(\.colorScheme) private var colorScheme
         let title: String
         let value: String
         
         var body: some View {
             VStack(alignment: .leading) {
                 Text(title)
-                    .foregroundColor(.red)
+                    .foregroundColor(.red) // Kategorie-Bezeichnungen bleiben rot für Konsistenz
                     .font(.caption)
                 Text(value)
-                    .foregroundColor(.white)
+                    .foregroundColor(AppColors.text(for: colorScheme))
                     .font(.body)
             }
         }

@@ -4,13 +4,10 @@
 //
 //  Created by Manuel Wagner on 13.02.25.
 //
-
-
-import SwiftUI
-
 import SwiftUI
 
 struct ActiveTournamentHeader: View {
+    @Environment(\.colorScheme) private var colorScheme
     let tournament: Tournament
     
     var completedMatches: Int {
@@ -33,27 +30,29 @@ struct ActiveTournamentHeader: View {
         VStack(spacing: 8) {
             Text("\(tournament.players.count) Spieler")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(AppColors.text(for: colorScheme))
             
             HStack {
                 Text("Punktzahl: \(tournament.gamePoints.description)")
                     .font(.subheadline)
-                    .foregroundColor(.gray)
+                    .foregroundColor(AppColors.secondaryText(for: colorScheme))
                 
                 Spacer()
                 
                 Text("Modus: \(modusText)")
                     .font(.subheadline)
-                    .foregroundColor(.gray)
+                    .foregroundColor(AppColors.secondaryText(for: colorScheme))
             }
             
             Text("\(completedMatches) von \(totalMatches) Spielen abgeschlossen")
                 .font(.subheadline)
-                .foregroundColor(.gray)
+                .foregroundColor(AppColors.secondaryText(for: colorScheme))
             
             ProgressView(value: progress)
-                .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+                .progressViewStyle(LinearProgressViewStyle(tint: AppColors.accent))
                 .frame(maxWidth: .infinity)
         }
+        .padding()
+        .background(AppColors.cardBackground(for: colorScheme))
     }
 }

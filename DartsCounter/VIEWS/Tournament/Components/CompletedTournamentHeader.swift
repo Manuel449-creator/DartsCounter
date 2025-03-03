@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct CompletedTournamentHeader: View {
+    @Environment(\.colorScheme) private var colorScheme
     let tournament: Tournament
     
     var completedMatches: Int {
@@ -28,23 +29,23 @@ struct CompletedTournamentHeader: View {
             if let winner = tournament.winner {
                 Text("Turniersieger")
                     .font(.headline)
-                    .foregroundColor(.gray)
+                    .foregroundColor(AppColors.secondaryText(for: colorScheme))
                 
                 Text(winner)
                     .font(.title2)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(AppColors.text(for: colorScheme))
             }
             
             HStack {
                 VStack(alignment: .leading) {
                     Text("\(tournament.players.count) Spieler")
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.text(for: colorScheme))
                     
                     Text("\(completedMatches) von \(totalMatches) Spielen abgeschlossen")
                         .font(.subheadline)
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppColors.secondaryText(for: colorScheme))
                 }
                 
                 Spacer()
@@ -61,15 +62,15 @@ struct CompletedTournamentHeader: View {
                     
                     Text("Modus: \(modusText)")
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppColors.secondaryText(for: colorScheme))
                 }
             }
             
             ProgressView(value: progress)
-                .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+                .progressViewStyle(LinearProgressViewStyle(tint: AppColors.accent))
                 .frame(maxWidth: .infinity)
         }
         .padding()
-        .background(Color(white: 0.1))
+        .background(AppColors.cardBackground(for: colorScheme))
     }
 }

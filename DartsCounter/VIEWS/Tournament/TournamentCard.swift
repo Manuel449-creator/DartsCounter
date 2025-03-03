@@ -9,6 +9,7 @@
 import SwiftUI
 
 struct TournamentCard: View {
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var tournamentManager: TournamentManager
     let tournament: Tournament
     @State private var showingActionSheet = false
@@ -29,11 +30,11 @@ struct TournamentCard: View {
                     VStack(alignment: .leading) {
                         Text(tournament.name)
                             .font(.headline)
-                            .foregroundColor(.white)
+                            .foregroundColor(AppColors.text(for: colorScheme))
                         
                         Text("\(tournament.players.count) Spieler")
                             .font(.caption)
-                            .foregroundColor(.gray)
+                            .foregroundColor(AppColors.secondaryText(for: colorScheme))
                         
                         if let winner = tournament.winner {
                             Text("Gewinner: \(winner)")
@@ -46,12 +47,12 @@ struct TournamentCard: View {
                     
                     Button(action: { showingActionSheet = true }) {
                         Image(systemName: "ellipsis.circle")
-                            .foregroundColor(.white)
+                            .foregroundColor(AppColors.text(for: colorScheme))
                     }
                 }
             }
             .padding()
-            .background(Color(white: 0.15))
+            .background(AppColors.cardBackground(for: colorScheme))
             .cornerRadius(10)
         }
         .actionSheet(isPresented: $showingActionSheet) {
@@ -110,15 +111,10 @@ struct TournamentCard: View {
                         )
                     }
                 )
-                
             }
         }
         .onAppear {
             tournamentManager.reloadTournaments()
-            print("Debug - Tournament Points: \(tournament.gamePoints.rawValue)")
-            print("Debug - Selected Game Mode: \(tournament.gamePoints)")
-            print("Debug - Selected Legs/Sets: \(tournament.legsToWin.rawValue)")
-            print("Debug - Tournament Mode: \(tournament.tournamentMode.rawValue)")
         }
     }
 }

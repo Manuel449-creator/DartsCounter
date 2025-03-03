@@ -7,6 +7,7 @@
 import SwiftUI
 
 struct DetailedStatsView: View {
+    @Environment(\.colorScheme) private var colorScheme
     let stats: PlayerStatistics
     @State private var showingCheckoutDetails = false
     
@@ -14,7 +15,7 @@ struct DetailedStatsView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Detaillierte Statistiken")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(AppColors.text(for: colorScheme))
                 .padding(.bottom, 8)
             
             DetailStatRow(
@@ -50,16 +51,16 @@ struct DetailedStatsView: View {
             Button(action: { showingCheckoutDetails = true }) {
                 HStack {
                     Text("Checkouts anzeigen")
-                        .foregroundColor(.blue)
+                        .foregroundColor(AppColors.accent)
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppColors.secondaryText(for: colorScheme))
                 }
                 .padding(.vertical, 4)
             }
         }
         .padding()
-        .background(Color(white: 0.1))
+        .background(AppColors.cardBackground(for: colorScheme))
         .cornerRadius(15)
         .sheet(isPresented: $showingCheckoutDetails) {
             CheckoutDetailsView(checkouts: stats.checkouts)
@@ -68,23 +69,24 @@ struct DetailedStatsView: View {
 }
 
 struct CheckoutDetailsView: View {
+    @Environment(\.colorScheme) private var colorScheme
     let checkouts: [Int]
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
         NavigationView {
             ZStack {
-                Color.black.edgesIgnoringSafeArea(.all)
+                AppColors.background(for: colorScheme).edgesIgnoringSafeArea(.all)
                 
                 VStack {
                     Text("Checkout-Verteilung")
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.text(for: colorScheme))
                         .padding()
                     
                     if checkouts.isEmpty {
                         Text("Keine Checkouts verfügbar")
-                            .foregroundColor(.gray)
+                            .foregroundColor(AppColors.secondaryText(for: colorScheme))
                             .padding()
                     } else {
                         List {
@@ -92,18 +94,20 @@ struct CheckoutDetailsView: View {
                                 let count = checkouts.filter { $0 <= threshold }.count
                                 HStack {
                                     Text("Bis \(threshold)")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(AppColors.text(for: colorScheme))
                                     Spacer()
                                     Text("\(count) (\(percentage(count))%)")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(AppColors.text(for: colorScheme))
                                 }
+                                .listRowBackground(AppColors.cardBackground(for: colorScheme))
                             }
                             
-                            Section(header: Text("Höchste Checkouts").foregroundColor(.white)) {
+                            Section(header: Text("Höchste Checkouts").foregroundColor(AppColors.text(for: colorScheme))) {
                                 ForEach(checkouts.sorted(by: >).prefix(5), id: \.self) { checkout in
                                     Text("\(checkout)")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(AppColors.text(for: colorScheme))
                                 }
+                                .listRowBackground(AppColors.cardBackground(for: colorScheme))
                             }
                         }
                         .listStyle(InsetGroupedListStyle())
@@ -124,16 +128,17 @@ struct CheckoutDetailsView: View {
 }
 
 struct DetailStatRow: View {
+    @Environment(\.colorScheme) private var colorScheme
     let title: String
     let value: String
     
     var body: some View {
         HStack {
             Text(title)
-                .foregroundColor(.gray)
+                .foregroundColor(AppColors.secondaryText(for: colorScheme))
             Spacer()
             Text(value)
-                .foregroundColor(.white)
+                .foregroundColor(AppColors.text(for: colorScheme))
                 .fontWeight(.medium)
         }
         .padding(.vertical, 4)

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct TournamentView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) var dismiss
     @StateObject private var tournamentManager: TournamentManager
     @ObservedObject var playerManager: PlayerManager
@@ -17,7 +18,7 @@ struct TournamentView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.black.edgesIgnoringSafeArea(.all)
+                AppColors.background(for: colorScheme).edgesIgnoringSafeArea(.all)
                 
                 VStack(spacing: 20) {
                     Button(action: {
@@ -29,7 +30,7 @@ struct TournamentView: View {
                         }
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color.blue)
+                        .background(AppColors.accent)
                         .foregroundColor(.white)
                         .cornerRadius(10)
                     }
@@ -39,9 +40,9 @@ struct TournamentView: View {
                         VStack {
                             Image(systemName: "trophy")
                                 .font(.system(size: 50))
-                                .foregroundColor(.gray)
+                                .foregroundColor(AppColors.secondaryText(for: colorScheme))
                             Text("Keine Turniere vorhanden")
-                                .foregroundColor(.gray)
+                                .foregroundColor(AppColors.secondaryText(for: colorScheme))
                         }
                         .padding()
                     } else {
@@ -61,6 +62,7 @@ struct TournamentView: View {
             }
             .navigationTitle("Turniere")
             .navigationBarTitleDisplayMode(.inline)
+            .foregroundColor(AppColors.text(for: colorScheme))
             .navigationViewStyle(StackNavigationViewStyle())
         }
         .sheet(isPresented: $showingNewTournamentSheet) {

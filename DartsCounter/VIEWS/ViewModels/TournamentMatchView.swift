@@ -7,6 +7,7 @@
 import SwiftUI
 
 struct TournamentMatchView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var tournamentManager: TournamentManager
     let tournament: Tournament
     let match: TournamentMatch
@@ -21,11 +22,11 @@ struct TournamentMatchView: View {
     private var matchBackground: Color {
         switch true {
         case match.isBye:
-            return Color(white: 0.1)
+            return AppColors.cardBackground(for: colorScheme).opacity(0.7)
         case match.isCompleted:
-            return Color(white: 0.15)
+            return AppColors.cardBackground(for: colorScheme)
         default:
-            return Color(white: 0.2)
+            return AppColors.cardBackground(for: colorScheme).opacity(0.9)
         }
     }
     
@@ -36,7 +37,7 @@ struct TournamentMatchView: View {
         case match.isBye:
             return .blue.opacity(0.3)
         default:
-            return Color(white: 0.3)
+            return AppColors.secondaryText(for: colorScheme).opacity(0.3)
         }
     }
     
@@ -49,7 +50,7 @@ struct TournamentMatchView: View {
                 HStack {
                     Text(match.phase.rawValue)
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppColors.secondaryText(for: colorScheme))
                     
                     Spacer()
                     
@@ -69,7 +70,7 @@ struct TournamentMatchView: View {
                         
                         Text("vs")
                             .font(.caption)
-                            .foregroundColor(.gray)
+                            .foregroundColor(AppColors.secondaryText(for: colorScheme))
                         
                         PlayerMatchRow(
                             name: match.player2,
@@ -83,10 +84,10 @@ struct TournamentMatchView: View {
                 if let score = match.score {
                     Text(score)
                         .font(.caption)
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.text(for: colorScheme))
                         .padding(.horizontal, 8)
                         .padding(.vertical, 2)
-                        .background(Color.blue.opacity(0.3))
+                        .background(AppColors.accent.opacity(0.3))
                         .cornerRadius(4)
                 }
             }
@@ -159,6 +160,7 @@ struct TournamentMatchView: View {
 }
 
 struct PlayerMatchRow: View {
+    @Environment(\.colorScheme) private var colorScheme
     let name: String
     let isWinner: Bool
     let animate: Bool
@@ -166,7 +168,7 @@ struct PlayerMatchRow: View {
     var body: some View {
         HStack {
             Text(name.isEmpty ? "--" : name)
-                .foregroundColor(isWinner ? .green : .white)
+                .foregroundColor(isWinner ? .green : AppColors.text(for: colorScheme))
                 .fontWeight(isWinner ? .bold : .regular)
                 .scaleEffect(animate ? 1.05 : 1.0)
                 .animation(.spring(), value: animate)
@@ -190,6 +192,7 @@ struct PlayerMatchRow: View {
 }
 
 struct ByeMatchView: View {
+    @Environment(\.colorScheme) private var colorScheme
     let player: String
     
     var body: some View {
@@ -200,7 +203,7 @@ struct ByeMatchView: View {
             
             Text("Freilos")
                 .font(.caption)
-                .foregroundColor(.gray)
+                .foregroundColor(AppColors.secondaryText(for: colorScheme))
                 .italic()
             
             Image(systemName: "arrow.right.circle.fill")
@@ -210,6 +213,7 @@ struct ByeMatchView: View {
 }
 
 struct MatchStatusIndicator: View {
+    @Environment(\.colorScheme) private var colorScheme
     let match: TournamentMatch
     @State private var glowing = false
     
@@ -245,7 +249,7 @@ struct MatchStatusIndicator: View {
         case match.isBye:
             return .blue
         default:
-            return .gray
+            return AppColors.secondaryText(for: colorScheme)
         }
     }
     

@@ -7,6 +7,7 @@
 import SwiftUI
 
 struct PlayerSelectionSheet: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) var dismiss
     @ObservedObject var playerManager: PlayerManager
     @ObservedObject var historyManager: MatchHistoryManager
@@ -23,7 +24,7 @@ struct PlayerSelectionSheet: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.black.edgesIgnoringSafeArea(.all)
+                AppColors.background(for: colorScheme).edgesIgnoringSafeArea(.all)
                 
                 VStack {
                     List {
@@ -36,9 +37,9 @@ struct PlayerSelectionSheet: View {
                                 }) {
                                     HStack {
                                         Image(systemName: "person.circle.fill")
-                                            .foregroundColor(.gray)
+                                            .foregroundColor(AppColors.secondaryText(for: colorScheme))
                                         Text(player.name)
-                                            .foregroundColor(.white)
+                                            .foregroundColor(AppColors.text(for: colorScheme))
                                         Spacer()
                                     }
                                 }
@@ -53,6 +54,7 @@ struct PlayerSelectionSheet: View {
                                 }
                                 .buttonStyle(PlainButtonStyle())
                             }
+                            .listRowBackground(AppColors.cardBackground(for: colorScheme))
                         }
                         .onDelete { _ in }
                     }
@@ -67,7 +69,7 @@ struct PlayerSelectionSheet: View {
                         }
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color.blue)
+                        .background(AppColors.accent)
                         .foregroundColor(.white)
                         .cornerRadius(10)
                     }
@@ -96,8 +98,10 @@ struct PlayerSelectionSheet: View {
         }
     }
 }
+
 // Separate View für die Spielerauswahl
 struct PlayerSelectionRow: View {
+    @Environment(\.colorScheme) private var colorScheme
     let player: Player
     let onSelect: () -> Void
     
@@ -105,9 +109,9 @@ struct PlayerSelectionRow: View {
         Button(action: onSelect) {
             HStack {
                 Image(systemName: "person.circle.fill")
-                    .foregroundColor(.gray)
+                    .foregroundColor(AppColors.secondaryText(for: colorScheme))
                 Text(player.name)
-                    .foregroundColor(.white)
+                    .foregroundColor(AppColors.text(for: colorScheme))
             }
         }
     }

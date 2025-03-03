@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct TournamentDetailView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var tournamentManager: TournamentManager
     let tournament: Tournament
     @Environment(\.dismiss) var dismiss
@@ -64,6 +65,7 @@ struct TournamentDetailView: View {
                 )
             }
         }
+        .background(AppColors.background(for: colorScheme))
         .actionSheet(isPresented: $showingMatchOptions) {
             ActionSheet(
                 title: Text("Spiel Optionen"),
@@ -106,26 +108,26 @@ struct TournamentDetailView: View {
         .fullScreenCover(isPresented: $showingGameView) {
             if let match = selectedMatch {
                 GameView(
-                                    gameMode: .fiveZeroOne,
-                                    opponentType: .human,
-                                    botDifficulty: .easy,
-                                    guestName: match.player2,
-                                    homeName: match.player1,
-                                    historyManager: tournamentManager.historyManager,
-                                    playerManager: tournamentManager.playerManager,
-                                    numberOfSets: tournament.tournamentMode == .sets ? tournament.legsToWin.rawValue : 1,
-                                    startingScore: tournament.gamePoints.rawValue,
-                                    savedGameState: nil,
-                                    matchId: match.id,
-                                    onMatchComplete: { winner, score in
-                                        tournamentManager.completeMatch(
-                                            tournamentId: tournament.id,
-                                            matchId: match.id,
-                                            winner: winner,
-                                            score: score
-                                        )
-                                    }
-                                )
+                    gameMode: .fiveZeroOne,
+                    opponentType: .human,
+                    botDifficulty: .easy,
+                    guestName: match.player2,
+                    homeName: match.player1,
+                    historyManager: tournamentManager.historyManager,
+                    playerManager: tournamentManager.playerManager,
+                    numberOfSets: tournament.tournamentMode == .sets ? tournament.legsToWin.rawValue : 1,
+                    startingScore: tournament.gamePoints.rawValue,
+                    savedGameState: nil,
+                    matchId: match.id,
+                    onMatchComplete: { winner, score in
+                        tournamentManager.completeMatch(
+                            tournamentId: tournament.id,
+                            matchId: match.id,
+                            winner: winner,
+                            score: score
+                        )
+                    }
+                )
             }
         }
         .onDisappear {
@@ -134,17 +136,17 @@ struct TournamentDetailView: View {
         }
         
         .onChange(of: upcomingMatches) { _, _ in
-                            // Force view update
-                            self.refreshTrigger = UUID()
-                            tournamentManager.objectWillChange.send()
-                        }
+            // Force view update
+            self.refreshTrigger = UUID()
+            tournamentManager.objectWillChange.send()
+        }
                         
-                    // Erzwingt Aktualisierung beim Erscheinen der View
-                    .onAppear {
-                        // Sicherstellen, dass die Daten aktuell sind
-                        tournamentManager.reloadTournaments()
-                                   self.refreshTrigger = UUID()
-                    }
+        // Erzwingt Aktualisierung beim Erscheinen der View
+        .onAppear {
+            // Sicherstellen, dass die Daten aktuell sind
+            tournamentManager.reloadTournaments()
+            self.refreshTrigger = UUID()
+        }
     }
     
     private func getMatchDescription() -> String {
@@ -154,6 +156,7 @@ struct TournamentDetailView: View {
 }
 
 struct UpcomingMatchCard: View {
+    @Environment(\.colorScheme) private var colorScheme
     let match: TournamentMatch
     let onTap: () -> Void
     
@@ -162,23 +165,23 @@ struct UpcomingMatchCard: View {
             VStack(spacing: 8) {
                 Text(match.phase.rawValue)
                     .font(.caption)
-                    .foregroundColor(.gray)
+                    .foregroundColor(AppColors.secondaryText(for: colorScheme))
                 
                 HStack {
                     // Zeige "TBD" an, wenn der Spielername leer ist
                     Text(match.player1.isEmpty ? "TBD" : match.player1)
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.text(for: colorScheme))
                     
                     Text("vs")
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppColors.secondaryText(for: colorScheme))
                     
                     Text(match.player2.isEmpty ? "TBD" : match.player2)
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.text(for: colorScheme))
                 }
             }
             .padding()
             .frame(maxWidth: .infinity)
-            .background(Color(white: 0.2))
+            .background(AppColors.cardBackground(for: colorScheme))
             .cornerRadius(10)
         }
         .id(match.id) // Wichtig: Erzwingt Neuzeichnung bei Änderungen
@@ -186,6 +189,7 @@ struct UpcomingMatchCard: View {
 }
 
 struct EditMatchView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) var dismiss
     @ObservedObject var tournamentManager: TournamentManager
     let tournament: Tournament

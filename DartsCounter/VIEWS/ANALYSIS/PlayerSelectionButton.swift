@@ -7,6 +7,7 @@
 import SwiftUI
 
 struct PlayerSelectionButton: View {
+    @Environment(\.colorScheme) private var colorScheme
     let player: Player
     let isSelected: Bool
     let action: () -> Void
@@ -21,8 +22,8 @@ struct PlayerSelectionButton: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(isSelected ? Color.blue : Color(white: 0.2))
-            .foregroundColor(.white)
+            .background(isSelected ? AppColors.accent : AppColors.cardBackground(for: colorScheme))
+            .foregroundColor(isSelected ? .white : AppColors.text(for: colorScheme))
             .cornerRadius(25)
         }
     }

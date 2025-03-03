@@ -7,6 +7,7 @@
 import SwiftUI
 
 struct GameViewPlayers: View {
+    @Environment(\.colorScheme) private var colorScheme
     let homeName: String
     let opponentName: String
     @ObservedObject var viewModel: GameViewModel
@@ -29,5 +30,6 @@ struct GameViewPlayers: View {
                 isStarting: !viewModel.isPlayer1Starting
             )
         }
+        .background(AppColors.cardBackground(for: colorScheme))
     }
 }

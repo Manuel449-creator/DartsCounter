@@ -304,6 +304,8 @@ class MatchHistoryManager: ObservableObject {
 }
 
 struct ContentView: View {
+    @EnvironmentObject private var themeManager: ThemeManager
+    @Environment(\.colorScheme) private var colorScheme
     @StateObject private var historyManager = MatchHistoryManager()
     @StateObject private var playerManager = PlayerManager()
     @State private var selectedTab = 0
@@ -315,65 +317,127 @@ struct ContentView: View {
     @State private var showingGuestPlayerSelection = false
     @State private var showingHomePlayerSelection = false
     @State private var selectedSets = SetConfiguration.options[1]
+    @State private var showingThemeSettings = false
     @State private var isTournamentMode = false
+    
+    // Berechne das effektive Farbschema basierend auf den Benutzereinstellungen
+    private var effectiveColorScheme: ColorScheme {
+        switch themeManager.theme {
+        case .system: return colorScheme
+        case .light: return .light
+        case .dark: return .dark
+        }
+    }
     
     var body: some View {
         NavigationStack {
-            TabView(selection: $selectedTab) {
-                GameSetupView(
-                    selectedGameMode: $selectedGameMode,
-                    opponentType: $opponentType,
-                    botDifficulty: $botDifficulty,
-                    guestName: $guestName,
-                    homeName: $homeName,
-                    showingGuestPlayerSelection: $showingGuestPlayerSelection,
-                    showingHomePlayerSelection: $showingHomePlayerSelection,
-                    selectedSets: $selectedSets,
-                    historyManager: historyManager,
-                    playerManager: playerManager
-                )
-                .tabItem {
-                    Label("Spiel", systemImage: "gamecontroller")
-                }
-                .tag(0)
-                
-                AnalysisView(historyManager: historyManager, playerManager: playerManager)
+            ZStack(alignment: .bottom) {
+                TabView(selection: $selectedTab) {
+                    GameSetupView(
+                        selectedGameMode: $selectedGameMode,
+                        opponentType: $opponentType,
+                        botDifficulty: $botDifficulty,
+                        guestName: $guestName,
+                        homeName: $homeName,
+                        showingGuestPlayerSelection: $showingGuestPlayerSelection,
+                        showingHomePlayerSelection: $showingHomePlayerSelection,
+                        selectedSets: $selectedSets,
+                        historyManager: historyManager,
+                        playerManager: playerManager
+                    )
                     .tabItem {
-                        Label("Analyse", systemImage: "chart.bar")
+                        Label("Spiel", systemImage: "gamecontroller")
                     }
-                    .tag(1)
+                    .tag(0)
+                    
+                    AnalysisView(historyManager: historyManager, playerManager: playerManager)
+                        .tabItem {
+                            Label("Analyse", systemImage: "chart.bar")
+                        }
+                        .tag(1)
+                }
+                .toolbarBackground(.visible, for: .tabBar)
+                .toolbarBackground(
+                    effectiveColorScheme == .dark ? Color.black : Color.white,
+                    for: .tabBar
+                )
+                .tint(AppColors.accent)
+                // Wichtig: Stellen Sie sicher, dass Inhalt nicht unter die TabBar scrollt
+                .safeAreaInset(edge: .bottom) {
+                    // Diese leere View sorgt für den korrekten Abstand am unteren Rand
+                    Color.clear.frame(height: 0)
+                }
             }
-            .toolbarBackground(.visible, for: .tabBar)
-            .toolbarBackground(Color.black, for: .tabBar)
-            .tint(.white)
-            .onAppear {
-                configureTabBarAppearance()
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        showingThemeSettings = true
+                    }) {
+                        Image(systemName: themeManager.theme.icon)
+                            .foregroundColor(AppColors.text(for: colorScheme))
+                    }
+                }
             }
+            .sheet(isPresented: $showingThemeSettings) {
+                ThemeSettingsView()
+                    .presentationDetents([.height(250)])
+            }
+            .onChange(of: colorScheme) { _, _ in }
+            .onChange(of: themeManager.theme) { _, _ in }
         }
-        .accentColor(.white)
-    }
-    
-    private func configureTabBarAppearance() {
-        let appearance = UITabBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = .black
-        
-        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
-            .foregroundColor: UIColor.gray
-        ]
-        appearance.stackedLayoutAppearance.normal.iconColor = .gray
-        
-        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
-            .foregroundColor: UIColor.white
-        ]
-        appearance.stackedLayoutAppearance.selected.iconColor = .white
-        
-        UITabBar.appearance().standardAppearance = appearance
-        UITabBar.appearance().scrollEdgeAppearance = appearance
+        .accentColor(AppColors.accent)
+        .preferredColorScheme(themeManager.theme.colorScheme == .dark ? .dark : themeManager.theme.colorScheme == .light ? .light : nil)
     }
 }
 
+// Neue View für die Theme-Einstellungen
+struct ThemeSettingsView: View {
+    @EnvironmentObject private var themeManager: ThemeManager
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    
+    var body: some View {
+        NavigationView {
+            List {
+                ForEach(AppTheme.allCases) { theme in
+                    Button(action: {
+                        themeManager.theme = theme
+                        dismiss()
+                    }) {
+                        HStack {
+                            Image(systemName: theme.icon)
+                                .foregroundColor(AppColors.accent)
+                            
+                            Text(theme.rawValue)
+                                .foregroundColor(AppColors.text(for: colorScheme))
+                            
+                            Spacer()
+                            
+                            if themeManager.theme == theme {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(AppColors.accent)
+                            }
+                        }
+                    }
+                    .listRowBackground(AppColors.cardBackground(for: colorScheme))
+                }
+            }
+            .navigationTitle("Erscheinungsbild")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Fertig") {
+                        dismiss()
+                    }
+                }
+            }
+            .background(AppColors.background(for: colorScheme))
+        }
+        .preferredColorScheme(themeManager.theme.colorScheme)
+    }
+}
 struct GameSetupView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Binding var selectedGameMode: GameMode
     @Binding var opponentType: OpponentType
     @Binding var botDifficulty: BotDifficulty
@@ -405,7 +469,7 @@ struct GameSetupView: View {
     
     var body: some View {
         ZStack {
-            Color.black.edgesIgnoringSafeArea(.all)
+            AppColors.background(for: colorScheme).edgesIgnoringSafeArea(.all)
             
             ScrollView {
                 VStack(spacing: 20) {
@@ -415,13 +479,13 @@ struct GameSetupView: View {
                     NavigationLink(destination: TournamentView(playerManager: playerManager)) {
                         HStack {
                             Image(systemName: "trophy")
-                                .foregroundColor(.gray)
+                                .foregroundColor(AppColors.secondaryText(for: colorScheme))
                             Text("Turniermodus")
-                                .foregroundColor(.white)
+                                .foregroundColor(AppColors.text(for: colorScheme))
                         }
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color(white: 0.2))
+                        .background(AppColors.cardBackground(for: colorScheme))
                         .cornerRadius(10)
                     }
                     .padding(.horizontal)
@@ -472,24 +536,26 @@ struct GameSetupView: View {
     }
 }
 
-
 struct TitleSection: View {
+    @Environment(\.colorScheme) private var colorScheme
+    
     var body: some View {
         Text("Dart Counter")
             .font(.largeTitle)
-            .foregroundColor(.white)
+            .foregroundColor(AppColors.text(for: colorScheme))
             .padding()
     }
 }
 
 struct GameModeSection: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Binding var selectedGameMode: GameMode
     
     var body: some View {
         VStack {
             Text("Spielmodus auswählen")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(AppColors.text(for: colorScheme))
             
             Picker("Spielmodus", selection: $selectedGameMode) {
                 ForEach(GameMode.allCases, id: \.self) { mode in
@@ -503,13 +569,14 @@ struct GameModeSection: View {
 }
 
 struct SetSelectionSection: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Binding var selectedSets: String
     
     var body: some View {
         VStack {
             Text("Sätze")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(AppColors.text(for: colorScheme))
             
             Picker("Sätze", selection: $selectedSets) {
                 ForEach(SetConfiguration.options, id: \.self) { option in
@@ -523,6 +590,7 @@ struct SetSelectionSection: View {
 }
 
 struct PlayerSelectionSection: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Binding var homeName: String
     @Binding var showingHomePlayerSelection: Bool
     
@@ -530,7 +598,7 @@ struct PlayerSelectionSection: View {
         VStack {
             Text("Heimspieler")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(AppColors.text(for: colorScheme))
             
             Button(action: {
                 showingHomePlayerSelection = true
@@ -538,8 +606,8 @@ struct PlayerSelectionSection: View {
                 Text(homeName.isEmpty ? "Spieler auswählen" : homeName)
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color(white: 0.2))
-                    .foregroundColor(.white)
+                    .background(AppColors.cardBackground(for: colorScheme))
+                    .foregroundColor(AppColors.text(for: colorScheme))
                     .cornerRadius(10)
             }
             .padding(.horizontal)
@@ -548,6 +616,7 @@ struct PlayerSelectionSection: View {
 }
 
 struct OpponentSection: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Binding var opponentType: OpponentType
     @Binding var botDifficulty: BotDifficulty
     @Binding var guestName: String
@@ -557,7 +626,7 @@ struct OpponentSection: View {
         VStack {
             Text("Gegenspieler auswählen")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(AppColors.text(for: colorScheme))
             
             Picker("Gegenspieler", selection: $opponentType) {
                 ForEach(OpponentType.allCases, id: \.self) { type in
@@ -571,7 +640,7 @@ struct OpponentSection: View {
                 VStack {
                     Text("Bot-Schwierigkeitsstufe")
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.text(for: colorScheme))
                     
                     Picker("Bot-Schwierigkeit", selection: $botDifficulty) {
                         ForEach(BotDifficulty.allCases, id: \.self) { difficulty in
@@ -585,7 +654,7 @@ struct OpponentSection: View {
                 VStack {
                     Text("Gegner")
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.text(for: colorScheme))
                     
                     Button(action: {
                         showingGuestPlayerSelection = true
@@ -593,8 +662,8 @@ struct OpponentSection: View {
                         Text(guestName.isEmpty ? "Spieler auswählen" : guestName)
                             .padding()
                             .frame(maxWidth: .infinity)
-                            .background(Color(white: 0.2))
-                            .foregroundColor(.white)
+                            .background(AppColors.cardBackground(for: colorScheme))
+                            .foregroundColor(AppColors.text(for: colorScheme))
                             .cornerRadius(10)
                     }
                     .padding(.horizontal)
@@ -605,6 +674,7 @@ struct OpponentSection: View {
 }
 
 struct StartGameButton: View {
+    @Environment(\.colorScheme) private var colorScheme
     let homeName: String
     let guestName: String
     let opponentType: OpponentType
@@ -634,7 +704,7 @@ struct StartGameButton: View {
                 .font(.title2)
                 .padding()
                 .frame(maxWidth: .infinity)
-                .background(isEnabled ? Color.blue : Color.gray)
+                .background(isEnabled ? AppColors.accent : Color.gray)
                 .foregroundColor(.white)
                 .cornerRadius(10)
         }
@@ -643,7 +713,9 @@ struct StartGameButton: View {
     }
 }
 
+
 struct AddPlayerSheet: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) var dismiss
     @ObservedObject var playerManager: PlayerManager
     @Binding var selectedPlayerName: String
@@ -652,7 +724,7 @@ struct AddPlayerSheet: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.black.edgesIgnoringSafeArea(.all)
+                AppColors.background(for: colorScheme).edgesIgnoringSafeArea(.all)
                 
                 VStack {
                     TextField("Spielername", text: $newPlayerName)
@@ -670,7 +742,7 @@ struct AddPlayerSheet: View {
                         Text("Spieler hinzufügen")
                             .padding()
                             .frame(maxWidth: .infinity)
-                            .background(Color.blue)
+                            .background(newPlayerName.isEmpty ? Color.gray : AppColors.accent)
                             .foregroundColor(.white)
                             .cornerRadius(10)
                     }

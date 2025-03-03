@@ -1,7 +1,11 @@
 import SwiftUI
 
 // Connection Line Base Component
+
+// Connection Line Base Component
 struct TournamentBracketConnectionLine: View {
+    @Environment(\.colorScheme) private var colorScheme
+    
     var body: some View {
         GeometryReader { geometry in
             Path { path in
@@ -11,13 +15,14 @@ struct TournamentBracketConnectionLine: View {
                 path.move(to: CGPoint(x: Double(startX), y: centerY))
                 path.addLine(to: CGPoint(x: Double(endX), y: centerY))
             }
-            .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+            .stroke(AppColors.secondaryText(for: colorScheme).opacity(0.5), lineWidth: 1)
         }
     }
 }
 
 // Main Bracket View
 struct TournamentBracketView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var tournamentManager: TournamentManager
     let tournament: Tournament
     
@@ -32,9 +37,9 @@ struct TournamentBracketView: View {
                             ForEach(phaseMatches) { match in
                                 TournamentMatchView(
                                     tournamentManager: tournamentManager,
-                                       tournament: tournament,  // Übergebe das tournament
-                                       match: match,
-                                       nextMatch: tournamentManager.getNextMatch(for: match)
+                                    tournament: tournament,
+                                    match: match,
+                                    nextMatch: tournamentManager.getNextMatch(for: match)
                                 )
                                 .frame(width: 200)
                             }
@@ -56,6 +61,7 @@ struct TournamentBracketView: View {
             }
             .padding()
         }
+        .background(AppColors.background(for: colorScheme))
     }
     
     private func calculateSpacing(for phase: TournamentPhase) -> CGFloat {
@@ -82,6 +88,7 @@ struct TournamentBracketView: View {
 
 // Animated Connection Line
 struct AnimatedConnectionLine: View {
+    @Environment(\.colorScheme) private var colorScheme
     @State private var animationProgress: CGFloat = 0
     let isActive: Bool
     
@@ -94,13 +101,14 @@ struct AnimatedConnectionLine: View {
                 path.move(to: CGPoint(x: startX, y: centerY))
                 path.addLine(to: CGPoint(x: endX * Double(animationProgress), y: centerY))
             }
-            .stroke(isActive ? Color.green : Color.gray.opacity(0.5), lineWidth: 1)
+            .stroke(isActive ? Color.green : AppColors.secondaryText(for: colorScheme).opacity(0.5), lineWidth: 1)
         }
     }
 }
 
 // Tournament Bracket Connection
 struct TournamentBracketConnection: View {
+    @Environment(\.colorScheme) private var colorScheme
     let match: TournamentMatch
     let nextMatch: TournamentMatch?
     @State private var animationProgress: CGFloat = 0
@@ -122,7 +130,7 @@ struct TournamentBracketConnection: View {
                 Path { path in
                     drawConnectionPath(&path, for: geometry)
                 }
-                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                .stroke(AppColors.secondaryText(for: colorScheme).opacity(0.3), lineWidth: 1)
                 
                 // Animated Progress Line
                 Path { path in
@@ -146,21 +154,20 @@ struct TournamentBracketConnection: View {
         }
     }
 
+    private func drawConnectionPath(_ path: inout Path, for geometry: GeometryProxy) {
+        let startX = Double(0)
+        let endX = Double(geometry.size.width)
+        let centerY = Double(geometry.size.height / 2)
+        let controlPointX = Double(endX * 0.5)
         
-        private func drawConnectionPath(_ path: inout Path, for geometry: GeometryProxy) {
-            let startX = Double(0)
-            let endX = Double(geometry.size.width)
-            let centerY = Double(geometry.size.height / 2)
-            let controlPointX = Double(endX * 0.5)
-            
-            path.move(to: CGPoint(x: startX, y: centerY))
-            path.addCurve(
-                to: CGPoint(x: endX, y: centerY),
-                control1: CGPoint(x: controlPointX, y: centerY),
-                control2: CGPoint(x: controlPointX, y: centerY)
-            )
-        }
+        path.move(to: CGPoint(x: startX, y: centerY))
+        path.addCurve(
+            to: CGPoint(x: endX, y: centerY),
+            control1: CGPoint(x: controlPointX, y: centerY),
+            control2: CGPoint(x: controlPointX, y: centerY)
+        )
     }
+}
 
 // Connection Status Enum
 enum ConnectionStatus {
@@ -179,6 +186,7 @@ enum ConnectionStatus {
 
 // Match Connector
 struct TournamentMatchConnector: View {
+    @Environment(\.colorScheme) private var colorScheme
     let match: TournamentMatch
     let nextMatch: TournamentMatch?
     
